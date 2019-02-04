@@ -11,36 +11,42 @@
      Define both the scrach initial message and the minibuffer initial message.
 
 #+BEGIN_SRC emacs-lisp
-      (setq initial-scratch-message
-"
-;;  _________               ________
-;;  \\++++++++\\             /+++++++/
-;;   \\++++++++\\           /+++++++/
-;;    \\++++++++\\         /+++++++/
-;;     \\++++++++\\       /+++++++/
-;;      \\++++++++\\     /+++++++/
-;;       \\++++++++\\    \\++++++/
-;;        \\++++++++\\    \\++++/
-;;         \\++++++++\\    \\++/
-;;          \\++++++++\\    \\/
-;;           \\++++++++\\ 
-;;            \\++++++++\\
-;;             \\+++++++/  __
-;;              \\+++++/  /++\\
-;;               \\+++/  /++++\\    Rev. A-007.02 since creation,
-;;                \\+/  /++++++\\   Welcome back.
-;;                 '   --------
-")
+  (defvar cr-commit-hash
+    (substring
+     (shell-command-to-string
+      (concat "(cd " user-emacs-directory " && git rev-parse --short=16 HEAD)"))
+     0 -1))
 
-    ;; For some reason, scrach mode is detected when I set
-    ;; linum-mode to prog-mode-hook, so I manually disable
-    ;; it here.
-    (add-hook 'emacs-startup-hook
-	      (lambda ()
-		(linum-relative-mode 0)))
+  (setq initial-scratch-message
+	(concat
+  ";;  _________               ________
+  ;;  \\++++++++\\             /+++++++/
+  ;;   \\++++++++\\           /+++++++/
+  ;;    \\++++++++\\         /+++++++/
+  ;;     \\++++++++\\       /+++++++/
+  ;;      \\++++++++\\     /+++++++/
+  ;;       \\++++++++\\    \\++++++/
+  ;;        \\++++++++\\    \\++++/
+  ;;         \\++++++++\\    \\++/
+  ;;          \\++++++++\\    \\/
+  ;;           \\++++++++\\ 
+  ;;            \\++++++++\\
+  ;;             \\+++++++/  __
+  ;;              \\+++++/  /++\\
+  ;;               \\+++/  /++++\\    Rev. " cr-commit-hash " since creation,
+  ;;                \\+/  /++++++\\   Welcome back.
+  ;;                 '   --------
+  "))
 
-    (defun display-startup-echo-area-message ()
-      (message "Nani?"))
+  ;; For some reason, scrach mode is detected when I set
+  ;; linum-mode to prog-mode-hook, so I manually disable
+  ;; it here.
+  (add-hook 'emacs-startup-hook
+	    (lambda ()
+	      (linum-relative-mode 0)))
+
+  (defun display-startup-echo-area-message ()
+    (message "Nani?"))
 #+END_SRC
 
 **** Font
@@ -283,7 +289,7 @@
   (use-package ox-twbs
     :ensure t)
 #+END_SRC
-** key bindings
+** Key bindings
 *** General
 **** Kill the current buffer.
 #+BEGIN_SRC emacs-lisp
@@ -296,6 +302,13 @@
 **** Change between header and implementation
 #+BEGIN_SRC emacs-lisp
   (evil-leader/set-key-for-mode 'c-mode "ts" #'ff-find-other-file)
+#+END_SRC
+**** Reload configuration
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key "R"
+    (lambda ()
+      (interactive)
+      (load-file (concat user-emacs-directory "init.el"))))
 #+END_SRC
 *** Magit
 #+BEGIN_SRC emacs-lisp
