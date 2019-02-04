@@ -9,7 +9,6 @@
 #+END_SRC
 **** Initial messages
      Define both the scrach initial message and the minibuffer initial message.
-
 #+BEGIN_SRC emacs-lisp
   (defvar cr-commit-hash
     (substring
@@ -201,16 +200,21 @@
   (use-package diminish
     :ensure t
     :config
-    (diminish #'projectile-mode)
-    (diminish #'ivy-mode)
-    (diminish #'undo-tree-mode)
-    (diminish #'org-src-mode)
-    (diminish #'eldoc-mode)
-    (diminish #'which-key-mode)
-    (diminish #'editorconfig-mode)
-    (diminish #'company-mode)
-    (diminish #'beacon-mode)
-    (diminish #'linum-relative-mode))
+    (add-hook 'after-init-hook
+	      (lambda ()
+		(diminish #'projectile-mode)
+		(diminish #'ivy-mode)
+		(diminish #'undo-tree-mode)
+		(diminish #'org-src-mode)
+		(diminish #'eldoc-mode)
+		(diminish #'which-key-mode)
+		(diminish #'editorconfig-mode)
+		(diminish #'company-mode)
+		(diminish #'beacon-mode)
+		(diminish #'linum-relative-mode)
+		(diminish #'auto-revert-mode)
+		(diminish #'abbrev-mode)
+		(diminish #'ggtags-mode))))
 #+END_SRC
 **** Beacon
      A light that follows your cursor around so you don't lose it!
