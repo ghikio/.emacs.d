@@ -1,0 +1,329 @@
+#+TITLE: V'emacs configuration
+
+* CONFIGURATION
+** Initial configuration
+*** Aesthetics
+**** Disable tutorial
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-message t)
+#+END_SRC
+**** Initial messages
+     Define both the scrach initial message and the minibuffer initial message.
+
+#+BEGIN_SRC emacs-lisp
+      (setq initial-scratch-message
+"
+;;  _________               ________
+;;  \\++++++++\\             /+++++++/
+;;   \\++++++++\\           /+++++++/
+;;    \\++++++++\\         /+++++++/
+;;     \\++++++++\\       /+++++++/
+;;      \\++++++++\\     /+++++++/
+;;       \\++++++++\\    \\++++++/
+;;        \\++++++++\\    \\++++/
+;;         \\++++++++\\    \\++/
+;;          \\++++++++\\    \\/
+;;           \\++++++++\\ 
+;;            \\++++++++\\
+;;             \\+++++++/  __
+;;              \\+++++/  /++\\
+;;               \\+++/  /++++\\    Rev. A-007.02 since creation,
+;;                \\+/  /++++++\\   Welcome back.
+;;                 '   --------
+")
+
+    ;; For some reason, scrach mode is detected when I set
+    ;; linum-mode to prog-mode-hook, so I manually disable
+    ;; it here.
+    (add-hook 'emacs-startup-hook
+	      (lambda ()
+		(linum-relative-mode 0)))
+
+    (defun display-startup-echo-area-message ()
+      (message "Nani?"))
+#+END_SRC
+
+**** Font
+#+BEGIN_SRC emacs-lisp
+  (set-frame-font "Fira Code Retina 13" nil t)
+#+END_SRC
+**** GUI
+     Hide things.
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (fringe-mode 0)
+#+END_SRC
+
+     Display time in bar.
+#+BEGIN_SRC emacs-lisp
+  (display-time-mode)
+  (setq display-time-default-load-average nil)
+#+END_SRC
+
+     Pretiffy symbols
+#+BEGIN_SRC emacs-lisp
+  (global-prettify-symbols-mode 1)
+#+END_SRC
+**** Theme
+     Add a custom directory for themes and activate the seti theme.
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'after-init-hook
+	    (lambda () (load-theme 'gruvbox)))
+  (add-to-list 'custom-theme-load-path
+	       (concat user-emacs-directory "/themes/"))
+#+END_SRC
+*** Behavior
+**** Remap yes/no menus to y/n
+#+BEGIN_SRC emacs-lisp
+  (defalias #'yes-or-no-p #'y-or-n-p)
+#+END_SRC
+
+**** Progressive scroll
+#+BEGIN_SRC emacs-lisp
+  (setq scroll-conservatively 100)
+#+END_SRC
+**** Kill the f*#@! ring bell
+#+BEGIN_SRC emacs-lisp
+  (setq ring-bell-function #'ignore)
+#+END_SRC
+**** Disable backups and autosave
+#+BEGIN_SRC emacs-lisp
+  (setq make-backup-files nil)
+  (setq auto-save-default nil)
+#+END_SRC
+**** Set C default style
+#+BEGIN_SRC emacs-lisp
+  (setq c-default-style "linux")
+#+END_SRC
+** Packages configuration
+*** General
+**** Magit
+     GIT wrapper.
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :ensure t)
+#+END_SRC
+     _references:_
+     [[*Magit][Key bindings]]
+     [[*Evil-mode][Set evil-leader to work with magit]]
+**** Which-key
+     Autocompletion menu for commands.
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+      :ensure t
+      :init (which-key-mode t))
+#+END_SRC
+**** Tomatinho
+     Pomodoro timer.
+#+BEGIN_SRC emacs-lisp 
+  (use-package tomatinho
+    :ensure t)
+#+END_SRC
+     _references:_
+     [[*Tomatinho][Key bindings]]
+**** Ggtags
+     Emacs frontend to GNU Global source code tagging system.
+#+BEGIN_SRC emacs-lisp
+  (use-package ggtags
+    :ensure t
+    :config (add-hook 'c-mode-common-hook
+		      (lambda ()
+			(when (derived-mode-p 'c-mode 'c++-mode 'asm-mode)
+			  (ggtags-mode 1)))))
+#+END_SRC
+     _references:_
+     [[*Ggtags][Key bindings]]
+**** Projectile
+     Project Interaction Library for Emacs.
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :ensure t
+    :config (projectile-mode +1))
+#+END_SRC
+     _references:_
+     [[*Projectile][Key bindings]]
+**** Company
+     Modular in-buffer completion framework.
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t
+    :config (add-hook 'after-init-hook #'global-company-mode))
+
+  (use-package company-c-headers
+    :ensure t
+    :config
+    (add-to-list 'company-backends 'company-c-headers))
+#+END_SRC
+**** Editorconfig
+     Project based coding style rules.
+#+BEGIN_SRC emacs-lisp
+  (use-package editorconfig
+    :ensure t
+    :config (editorconfig-mode 1))
+#+END_SRC
+**** Slime
+     The Superior Lisp Interaction Mode for Emacs.
+#+BEGIN_SRC emacs-lisp
+  (use-package slime
+    :ensure t
+    :config
+    (setq inferior-lisp-program "/usr/bin/sbcl")
+    (setq slime-contribs '(slime-fancy)))
+#+END_SRC
+**** Semantic
+     Semantic is a suite of Emacs libraries and utilities for parsing
+     source code.
+#+BEGIN_SRC emacs-lisp
+  (use-package semantic
+    :ensure t
+    :config
+    (global-semantic-idle-scheduler-mode 1)
+    (global-semanticdb-minor-mode 1))
+#+END_SRC
+*** Aesthetic
+**** Powerline
+#+BEGIN_SRC emacs-lisp
+  (use-package powerline
+    :ensure t
+    :config (powerline-default-theme))
+#+END_SRC
+**** Diminish
+     Hide minor modes from the mode-line.
+#+BEGIN_SRC emacs-lisp
+  (use-package diminish
+    :ensure t
+    :config
+    (diminish #'projectile-mode)
+    (diminish #'ivy-mode)
+    (diminish #'undo-tree-mode)
+    (diminish #'org-src-mode)
+    (diminish #'eldoc-mode)
+    (diminish #'which-key-mode)
+    (diminish #'editorconfig-mode)
+    (diminish #'company-mode)
+    (diminish #'beacon-mode)
+    (diminish #'linum-relative-mode))
+#+END_SRC
+**** Beacon
+     A light that follows your cursor around so you don't lose it!
+#+BEGIN_SRC emacs-lisp
+  (use-package beacon
+    :ensure t
+    :config (beacon-mode 1))
+#+END_SRC
+**** Themes
+#+BEGIN_SRC emacs-lisp
+  (use-package gruvbox-theme
+    :ensure t)
+#+END_SRC
+*** VIM emulation
+**** Evil-leader
+     Leader key functionality.
+
+     Author note: You should enable global-evil-leader-mode before you enable evil-mode,
+     otherwise evil-leader won’t be enabled in initial buffers (*scratch*, *Messages*, …).
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-leader
+    :ensure t
+    :config (global-evil-leader-mode)
+	    (evil-leader/set-leader ","))
+#+END_SRC
+
+**** Evil-mode
+     A vim emulator layer.
+#+BEGIN_SRC emacs-lisp
+  (use-package evil
+    :ensure t
+    :init (setq evil-leader/no-prefix-mode-rx '("magit-.*-mode" "gnus-.*-mode"))
+    :config (evil-mode t))
+#+END_SRC
+
+**** Linum-relative
+     Show relative line numbers based on current line.
+#+BEGIN_SRC emacs-lisp
+  (use-package linum-relative
+    :ensure t
+    :init (setq linum-relative-backend 'display-line-numbers-mode)
+	  ;; If linum-relative-current-symbol is defined as a empty
+	  ;; string, it will show the current real line number.
+	  (setq linum-relative-current-symbol "")
+    :config (add-hook 'prog-mode-hook
+		      (lambda ()
+			(linum-relative-mode 1))))
+#+END_SRC
+*** IVY related
+    _references:_
+    [[*Swiper][Swiper key bindings]]
+**** IVY
+     Autocompletion mechanism
+#+BEGIN_SRC emacs-lisp
+  (use-package ivy
+    :ensure t
+    :init (setq ivy-use-virtual-buffers t)
+	  (setq enable-recursive-minibuffers t)
+    :config (ivy-mode 1))
+#+END_SRC
+*** ORG related
+**** Pretty-bullets
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :config (add-hook 'org-mode-hook
+		      (lambda ()
+			(org-bullets-mode t))))
+#+END_SRC
+
+    _references:_
+    [[*Org-mode][Key bindings]]
+**** Ox-twbs
+     Export org-mode docs as HTML compatible with Twitter Bootstrap.
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-twbs
+    :ensure t)
+#+END_SRC
+** key bindings
+*** General
+**** Kill the current buffer.
+#+BEGIN_SRC emacs-lisp
+(evil-leader/set-key "q" #'kill-this-buffer)
+#+END_SRC
+**** Zoom adjustment
+#+BEGIN_SRC emacs-lisp
+(evil-leader/set-key "z" #'text-scale-adjust)
+#+END_SRC
+**** Change between header and implementation
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key-for-mode 'c-mode "ts" #'ff-find-other-file)
+#+END_SRC
+*** Magit
+#+BEGIN_SRC emacs-lisp
+(evil-leader/set-key "gs" #'magit-status)
+#+END_SRC
+*** Ggtags
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key-for-mode 'c-mode "tfr" #'ggtags-find-reference)
+  (evil-leader/set-key-for-mode 'c-mode "tff" #'ggtags-find-file)
+  (evil-leader/set-key-for-mode 'c-mode "tfd" #'ggtags-find-definition)
+  (evil-leader/set-key-for-mode 'c-mode "tc"  #'ggtags-create-tags)
+  (evil-leader/set-key-for-mode 'c-mode "tu"  #'ggtags-update-tags)
+#+END_SRC
+*** Swiper
+#+BEGIN_SRC emacs-lisp
+(global-set-key "\C-s" 'swiper)
+#+END_SRC emacs-lisp
+*** Org-mode
+    Generate and insert links
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key-for-mode 'org-mode "ols" #'org-store-link)
+  (evil-leader/set-key-for-mode 'org-mode "oli" #'org-insert-link)
+#+END_SRC
+*** Tomatinho
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "<f12>") #'tomatinho)
+#+END_SRC
+*** Projectile
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key "p" #'projectile-command-map)
+#+END_SRC
