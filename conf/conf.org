@@ -10,10 +10,16 @@
 **** Initial messages
      Define both the scrach initial message and the minibuffer initial message.
 #+BEGIN_SRC emacs-lisp
-  (defvar cr-commit-hash
+  (defvar cr-git-commithash
     (substring
      (shell-command-to-string
-      (concat "(cd " user-emacs-directory " && git rev-parse --short=16 HEAD)"))
+      (concat "(cd " user-emacs-directory " && git rev-parse --short=8 HEAD)"))
+     0 -1))
+
+  (defvar cr-git-branch
+    (substring
+     (shell-command-to-string
+      (concat "(cd " user-emacs-directory " && git branch | grep \\* | cut -d' ' -f2)"))
      0 -1))
 
   (setq initial-scratch-message
@@ -28,11 +34,11 @@
   ;;        \\++++++++\\    \\++++/
   ;;         \\++++++++\\    \\++/
   ;;          \\++++++++\\    \\/
-  ;;           \\++++++++\\ 
+  ;;           \\++++++++\\
   ;;            \\++++++++\\
   ;;             \\+++++++/  __
   ;;              \\+++++/  /++\\
-  ;;               \\+++/  /++++\\    Rev. " cr-commit-hash " since creation,
+  ;;               \\+++/  /++++\\    Rev. " cr-git-branch ":" cr-git-commithash " since creation,
   ;;                \\+/  /++++++\\   Welcome back.
   ;;                 '   --------
   "))
@@ -47,7 +53,6 @@
   (defun display-startup-echo-area-message ()
     (message "Nani?"))
 #+END_SRC
-
 **** Font
 #+BEGIN_SRC emacs-lisp
   (set-frame-font "Fira Code Retina 13" nil t)
@@ -84,7 +89,6 @@
 #+BEGIN_SRC emacs-lisp
   (defalias #'yes-or-no-p #'y-or-n-p)
 #+END_SRC
-
 **** Progressive scroll
 #+BEGIN_SRC emacs-lisp
   (setq scroll-conservatively 100)
@@ -117,12 +121,30 @@
      Autocompletion menu for commands.
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
-      :ensure t
-      :init (which-key-mode t))
+    :ensure t
+    :init (which-key-mode t)
+    :config
+    (which-key-add-key-based-replacements
+      ", S"   "external shell"
+      ", c"   "configuration"
+      ", ce"  "edit"
+      ", cr"  "reload"
+      ", p"   "project"
+      ", pc"  "compile"
+      ", ps"  "switch projects"
+      ", g"   "git"
+      ", gs"  "status"
+      ", z"   "zoom")
+
+    (which-key-add-major-mode-key-based-replacements 'org-mode
+      ", o"   "org-mode"
+      ", ol"  "links"
+      ", ols" "store"
+      ", oli" "insert"))
 #+END_SRC
 **** Tomatinho
      Pomodoro timer.
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
   (use-package tomatinho
     :ensure t)
 #+END_SRC
@@ -152,7 +174,7 @@
 #+END_SRC
      _references:_
      [[*Projectile][Key bindings]]
-     [[*Counsel][counsel-projectile]]     
+     [[*Counsel][counsel-projectile]]
 **** Company
      Modular in-buffer completion framework.
 #+BEGIN_SRC emacs-lisp
@@ -234,7 +256,8 @@
 		(diminish #'auto-revert-mode)
 		(diminish #'abbrev-mode)
 		(diminish #'ggtags-mode)
-		(diminish #'yas-minor-mode))))
+		(diminish #'yas-minor-mode)
+		(diminish #'git-gutter-mode))))
 #+END_SRC
 **** Beacon
      A light that follows your cursor around so you don't lose it!
@@ -353,7 +376,7 @@
       (interactive)
       (load-file (concat user-emacs-directory "init.el"))))
 #+END_SRC
-     
+
      Open conf.org for modifications.
 #+BEGIN_SRC emacs-lisp
   (evil-leader/set-key "ce"
