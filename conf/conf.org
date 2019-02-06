@@ -248,6 +248,16 @@
   (use-package gruvbox-theme
     :ensure t)
 #+END_SRC
+**** Git Gutter Fringe
+     Allows highlighting uncommitted changes.
+#+BEGIN_SRC emacs-lisp
+  (use-package git-gutter-fringe
+    :ensure t
+    :config
+    (setq git-gutter-fr:side #'right-fringe)
+    (setq-default right-fringe-width 4)
+    (global-git-gutter-mode))
+#+END_SRC
 *** VIM emulation
 **** Evil-leader
      Leader key functionality.
@@ -352,6 +362,17 @@
       (if (find-buffer-visiting "conf.org")
 	  (switch-to-buffer "conf.org")
 	(find-file (concat user-emacs-directory "conf/conf.org")))))
+#+END_SRC
+**** Term
+#+BEGIN_SRC emacs-lisp
+  ;; basic shell
+  (evil-leader/set-key "s" #'shell)
+
+  ;; open external shell
+  (evil-leader/set-key "S"
+    (lambda ()
+      (interactive)
+      (call-process "alacritty")))
 #+END_SRC
 *** Magit
 #+BEGIN_SRC emacs-lisp
