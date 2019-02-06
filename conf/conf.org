@@ -145,10 +145,14 @@
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
     :ensure t
-    :config (projectile-mode +1))
+    :config
+    ;; projectile-mode is not enable here since we enable
+    ;; in the counsel-projectile package configuration.
+    (setq projectile-project-search-path '("~/.projects/")))
 #+END_SRC
      _references:_
      [[*Projectile][Key bindings]]
+     [[*Counsel][counsel-projectile]]     
 **** Company
      Modular in-buffer completion framework.
 #+BEGIN_SRC emacs-lisp
@@ -187,6 +191,21 @@
     (global-semantic-idle-scheduler-mode 1)
     (global-semanticdb-minor-mode 1))
 #+END_SRC
+**** Yasnippet
+     Snippets!
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config
+    (yas-global-mode 1))
+
+  ;; Basic general snippets
+  (use-package yasnippet-snippets
+    :ensure t
+    :requires yasnippet
+    :config
+    (yas-reload-all))
+#+END_SRC
 *** Aesthetic
 **** Powerline
 #+BEGIN_SRC emacs-lisp
@@ -214,7 +233,8 @@
 		(diminish #'linum-relative-mode)
 		(diminish #'auto-revert-mode)
 		(diminish #'abbrev-mode)
-		(diminish #'ggtags-mode))))
+		(diminish #'ggtags-mode)
+		(diminish #'yas-minor-mode))))
 #+END_SRC
 **** Beacon
      A light that follows your cursor around so you don't lose it!
@@ -266,7 +286,7 @@
 *** IVY related
     _references:_
     [[*Swiper][Swiper key bindings]]
-**** IVY
+**** Ivy
      Autocompletion mechanism
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
@@ -274,6 +294,14 @@
     :init (setq ivy-use-virtual-buffers t)
 	  (setq enable-recursive-minibuffers t)
     :config (ivy-mode 1))
+#+END_SRC
+**** Counsel
+#+BEGIN_SRC emacs-lisp
+  (use-package counsel-projectile
+    :ensure t
+    :requires (ivy projectile)
+    :config
+    (counsel-projectile-mode))
 #+END_SRC
 *** ORG related
 **** Pretty-bullets
@@ -307,12 +335,23 @@
 #+BEGIN_SRC emacs-lisp
   (evil-leader/set-key-for-mode 'c-mode "ts" #'ff-find-other-file)
 #+END_SRC
-**** Reload configuration
+**** Emacs directory related
+     Reload the init file.
 #+BEGIN_SRC emacs-lisp
-  (evil-leader/set-key "R"
+  (evil-leader/set-key "cr"
     (lambda ()
       (interactive)
       (load-file (concat user-emacs-directory "init.el"))))
+#+END_SRC
+     
+     Open conf.org for modifications.
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key "ce"
+    (lambda ()
+      (interactive)
+      (if (find-buffer-visiting "conf.org")
+	  (switch-to-buffer "conf.org")
+	(find-file (concat user-emacs-directory "conf/conf.org")))))
 #+END_SRC
 *** Magit
 #+BEGIN_SRC emacs-lisp
@@ -342,5 +381,6 @@
 #+END_SRC
 *** Projectile
 #+BEGIN_SRC emacs-lisp
-  (evil-leader/set-key "p" #'projectile-command-map)
+  (evil-leader/set-key "ps" #'counsel-projectile-switch-project)
+  (evil-leader/set-key "pc" #'projectile-compile-project)
 #+END_SRC

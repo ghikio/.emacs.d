@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# contributor: Victor Fernandes <criw@pm.me>
+# name: metadata
+# key: header
+# key: he
+# group: snippet
+# --
+# -*- mode: snippet -*-
+# contributor: Victor Fernandes <criw@pm.me>
+# name: ${1:name}
+# key: ${2:key}
+# group: ${3:group}
+# --
+$0

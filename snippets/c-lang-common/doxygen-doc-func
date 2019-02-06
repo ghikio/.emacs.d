@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# contributor: Victor Fernandes <criw@pm.me>
+# name: Doxygen doc function
+# key: doxyf
+# group: doxygen
+# --
+/**
+ * ${1:function name} - ${2:function description}
+ * @param ${3:type}  ${4:description}
+ * @retval ${5:type} ${6:description}
+ */
+$0

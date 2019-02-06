@@ -34,7 +34,7 @@
     ("7f89ec3c988c398b88f7304a75ed225eaac64efa8df3638c815acc563dfd3b55" "9b65cf71fd6b27a5362afeff062c6abd1c5d8a7c4d444c942f3da36bf0a151b1" default)))
  '(package-selected-packages
    (quote
-    (web-mode ledger projectile 0blayout org-bullets editorconfig company markdown-mode cargo htmlize use-package))))
+    (counsel-projectile yasnippet-snippets yasnippet web-mode ledger projectile 0blayout org-bullets editorconfig company markdown-mode cargo htmlize use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
