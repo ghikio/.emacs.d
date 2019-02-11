@@ -7,3 +7,6 @@ charset = utf8
 trim_trailing_whitespace = true
 indent_size = 2
 indent_style = space
+
+[snippets/**]
+insert_final_newline = false

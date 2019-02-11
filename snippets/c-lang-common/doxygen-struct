@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# contributor: Victor Fernandes <criw@pm.me>
+# name: doxygen-struct
+# key: doxys
+# group: doxygen
+# --
+/**
+ * struct ${1:name} - ${2:description}
+ */

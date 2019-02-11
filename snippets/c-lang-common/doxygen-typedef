@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# contributor: Victor Fernandes <criw@pm.me>
+# name: doxygen-typedef
+# key: doxyt
+# group: doxygen
+# --
+/**
+ * typedef ${1:name} - ${2:description}
+ */

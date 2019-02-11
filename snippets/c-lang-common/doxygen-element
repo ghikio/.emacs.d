@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: Victor Fernandes <criw@pm.me>
+# name: doxygen-element
+# key: doxye
+# group: doxygen
+# --
+///< ${1:description}
