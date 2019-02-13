@@ -79,6 +79,8 @@
 #+END_SRC
 **** Theme
      Add a custom directory for themes and activate the seti theme.
+
+     note: Theme is set in a hook since the package must load first.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'after-init-hook
 	    (lambda () (load-theme 'gruvbox)))
@@ -141,7 +143,17 @@
       ", o"   "org-mode"
       ", ol"  "links"
       ", ols" "store"
-      ", oli" "insert"))
+      ", oli" "insert")
+
+    (which-key-add-major-mode-key-based-replacements 'c-mode
+      ", t"   "tags"
+      ", tc"  "create tags file"
+      ", tu"  "update tags file"
+      ", ts"  "switch header/impl"
+      ", tf"  "find"
+      ", tfd" "definition"
+      ", tff" "file"
+      ", tfr" "reference"))
 #+END_SRC
 **** Tomatinho
      Pomodoro timer.
