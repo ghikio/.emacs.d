@@ -55,7 +55,8 @@
 #+END_SRC
 **** Font
 #+BEGIN_SRC emacs-lisp
-  (set-frame-font "Fira Code Retina 13" nil t)
+  (when (find-font (font-spec :name "Fira Code Retina"))
+    (set-frame-font "Fira Code Retina 13" nil t))
 #+END_SRC
 **** GUI
      Hide things.
@@ -170,7 +171,8 @@
     :config
     ;; projectile-mode is not enable here since we enable
     ;; in the counsel-projectile package configuration.
-    (setq projectile-project-search-path '("~/.projects/")))
+    (when (file-exists-p "~/.projects/")
+      (setq projectile-project-search-path '("~/.projects/"))))
 #+END_SRC
      _references:_
      [[*Projectile][Key bindings]]
