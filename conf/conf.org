@@ -1,5 +1,41 @@
-#+TITLE: V'emacs configuration
+#+TITLE:  V'emacs configuration
+#+AUTHOR: Victor Fernandes
+#+EMAIL:  criw@pm.me
 
+* DEFINED ELEMENTS
+** Global variables
+#+BEGIN_SRC emacs-lisp
+  (defvar v-doc-dir "~/Documents/" "string pointing to the documents directory")
+  (defvar v-doc-dump-dir (concat v-doc-dir "brain-dump/") "string pointing to the dump directory")
+  (defvar cr-git-commithash
+    (substring
+     (shell-command-to-string
+      (concat "(cd " user-emacs-directory " && git rev-parse --short=8 HEAD)"))
+     0 -1) "last commit of the configuration repository")
+  (defvar cr-git-branch
+    (substring
+     (shell-command-to-string
+      (concat "(cd " user-emacs-directory " && git branch | grep \\* | cut -d' ' -f2)"))
+     0 -1) "current branch of the configuration repository")
+
+#+END_SRC
+** Functions
+#+BEGIN_SRC emacs-lisp
+  (defun v-get-doc-filename (prefix)
+    "Create a temporary org filename"
+    (concat prefix "-"
+            (format-time-string "%Y%m%d") ".org"))
+
+  (defun v-open-doc-file ()
+    "Open a org file for the current day"
+    (interactive)
+    (setq file (v-get-doc-filename "dump"))
+
+    (when (not (file-directory-p v-doc-dump-dir))
+      (make-directory v-doc-dump-dir))
+
+    (find-file (concat v-doc-dump-dir file)))
+#+END_SRC
 * CONFIGURATION
 ** Initial configuration
 *** Aesthetics
@@ -10,18 +46,6 @@
 **** Initial messages
      Define both the scrach initial message and the minibuffer initial message.
 #+BEGIN_SRC emacs-lisp
-  (defvar cr-git-commithash
-    (substring
-     (shell-command-to-string
-      (concat "(cd " user-emacs-directory " && git rev-parse --short=8 HEAD)"))
-     0 -1))
-
-  (defvar cr-git-branch
-    (substring
-     (shell-command-to-string
-      (concat "(cd " user-emacs-directory " && git branch | grep \\* | cut -d' ' -f2)"))
-     0 -1))
-
   (setq initial-scratch-message
 	(concat
   ";;  _________               ________
@@ -109,6 +133,11 @@
 #+BEGIN_SRC emacs-lisp
   (setq c-default-style "linux")
 #+END_SRC
+**** Windows
+     Set windmove to wrap in borders
+#+BEGIN_SRC emacs-lisp
+  (setq windmove-wrap-around t)
+#+END_SRC
 ** Packages configuration
 *** General
 **** Magit
@@ -136,6 +165,8 @@
       ", pc"  "compile"
       ", ps"  "switch projects"
       ", g"   "git"
+      ", b"   "buffer"
+      ", bs"  "switch"
       ", gs"  "status"
       ", z"   "zoom")
 
@@ -332,7 +363,7 @@
 #+END_SRC
 *** IVY related
     _references:_
-    [[*Swiper][Swiper key bindings]]
+    [[*Ivy][Swiper key bindings]]
 **** Ivy
      Autocompletion mechanism
 #+BEGIN_SRC emacs-lisp
@@ -411,6 +442,20 @@
       (interactive)
       (call-process "alacritty")))
 #+END_SRC
+**** Windows
+#+BEGIN_SRC emacs-lisp
+  ;; after org since org uses M-h and my keybind
+  ;; was being replaced.
+  (with-eval-after-load "org"
+    (global-set-key (kbd "M-h") #'windmove-left)
+    (global-set-key (kbd "M-j") #'windmove-down)
+    (global-set-key (kbd "M-k") #'windmove-up)
+    (global-set-key (kbd "M-l") #'windmove-right))
+#+END_SRC
+**** Open dump note
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key "d" #'v-open-doc-file)
+#+END_SRC
 *** Magit
 #+BEGIN_SRC emacs-lisp
 (evil-leader/set-key "gs" #'magit-status)
@@ -423,10 +468,11 @@
   (evil-leader/set-key-for-mode 'c-mode "tc"  #'ggtags-create-tags)
   (evil-leader/set-key-for-mode 'c-mode "tu"  #'ggtags-update-tags)
 #+END_SRC
-*** Swiper
+*** Ivy
 #+BEGIN_SRC emacs-lisp
-(global-set-key "\C-s" 'swiper)
-#+END_SRC emacs-lisp
+  (global-set-key "\C-s" 'swiper)
+  (evil-leader/set-key "bs" #'ivy-switch-buffer)
+#+END_SRC
 *** Org-mode
     Generate and insert links
 #+BEGIN_SRC emacs-lisp
