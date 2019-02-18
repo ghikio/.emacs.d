@@ -168,6 +168,8 @@
       ", b"   "buffer"
       ", bs"  "switch"
       ", gs"  "status"
+      ", d"   "open dump note"
+      ", q"   "kill buffer"
       ", z"   "zoom")
 
     (which-key-add-major-mode-key-based-replacements 'org-mode
@@ -272,6 +274,24 @@
     :requires yasnippet
     :config
     (yas-reload-all))
+#+END_SRC
+**** Web development
+     Web template editing mode for emacs.
+#+BEGIN_SRC emacs-lisp
+  ;;; Mode for HTML w/ template motors
+  (use-package web-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.php\\'"   . web-mode)))
+
+  ;; Emmet plugin for emacs
+  (use-package emmet-mode
+    :ensure t
+    :config
+    (add-hook 'sgml-mode-hook #'emmet-mode)
+    (add-hook 'css-mode-hook  #'emmet-mode))
+
 #+END_SRC
 *** Aesthetic
 **** Powerline
