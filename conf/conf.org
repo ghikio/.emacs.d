@@ -339,45 +339,12 @@
 **** Git Gutter Fringe
      Allows highlighting uncommitted changes.
 #+BEGIN_SRC emacs-lisp
-(use-package git-gutter-fringe
+  (use-package git-gutter-fringe
     :ensure t
     :config
     (setq git-gutter-fr:side #'right-fringe)
     (setq-default right-fringe-width 4)
     (global-git-gutter-mode))
-#+END_SRC
-**** All-the-icons
-     A utility package to collect various Icon Fonts and
-     propertize them within Emacs.
-#+BEGIN_SRC emacs-lisp
-  (use-package all-the-icons
-    :ensure t
-    :defer 0.5
-    :config
-    (all-the-icons-material "save" :height 0))
-
-  ;; provides integration with ivy & counsel
-  (use-package all-the-icons-ivy
-    :ensure t
-    :after (all-the-icons ivy)
-    :custom (all-the-icons-ivy-file-commands '(counsel-dired-jump
-                                               counsel-find-file
-                                               counsel-file-jump
-                                               counsel-find-library
-                                               counsel-git
-                                               counsel-projectile-find-dir
-                                               counsel-projectile-find-file
-                                               counsel-recentf))
-    :config (all-the-icons-ivy-setup))
-#+END_SRC
-**** Doom mode-line
-#+BEGIN_SRC emacs-lisp
-  (use-package doom-modeline
-    :ensure t
-    :config (doom-modeline-mode 1)
-    :custom
-    (doom-modeline-height 15)
-    (doom-modeline-github 1))
 #+END_SRC
 *** VIM emulation
 **** Evil-leader
@@ -428,10 +395,6 @@
 #+END_SRC
 **** Counsel
 #+BEGIN_SRC emacs-lisp
-  (use-package counsel
-    :ensure t
-    :config (counsel-mode t))
-
   (use-package counsel-projectile
     :ensure t
     :requires (ivy projectile)
