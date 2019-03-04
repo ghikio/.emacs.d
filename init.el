@@ -29,12 +29,16 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+  '(all-the-icons-ivy-file-commands
+     (quote
+       (counsel-dired-jump counsel-find-file counsel-file-jump counsel-find-library counsel-git counsel-projectile-find-dir counsel-projectile-find-file counsel-recentf)))
   '(custom-safe-themes
      (quote
        ("7f89ec3c988c398b88f7304a75ed225eaac64efa8df3638c815acc563dfd3b55" "9b65cf71fd6b27a5362afeff062c6abd1c5d8a7c4d444c942f3da36bf0a151b1" default)))
+ '(doom-modeline-height 15 t)
   '(package-selected-packages
      (quote
-       (emmet-mode git-gutter-fringe counsel-projectile yasnippet-snippets yasnippet web-mode ledger projectile 0blayout org-bullets editorconfig company markdown-mode cargo htmlize use-package))))
+       (ghub doom-modeline all-the-icons-ivy emmet-mode git-gutter-fringe counsel-projectile yasnippet-snippets yasnippet web-mode ledger projectile 0blayout org-bullets editorconfig company markdown-mode cargo htmlize use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
