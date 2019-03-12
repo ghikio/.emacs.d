@@ -346,6 +346,28 @@
     (setq-default right-fringe-width 4)
     (global-git-gutter-mode))
 #+END_SRC
+**** Icons
+#+BEGIN_SRC emacs-lisp
+  (use-package all-the-icons
+    :ensure t)
+#+END_SRC
+**** Spaceline
+     Cute modeline <3
+#+BEGIN_SRC emacs-lisp
+  (use-package spaceline
+    :ensure t
+    :config
+    (require 'info+)
+    (require 'spaceline-config)
+    (spaceline-spacemacs-theme))
+
+  (use-package spaceline-all-the-icons
+    :ensure t
+    :disabled t
+    :after (spaceline all-the-icons)
+    :config
+    (spaceline-all-the-icons-theme))
+#+END_SRC
 *** VIM emulation
 **** Evil-leader
      Leader key functionality.
