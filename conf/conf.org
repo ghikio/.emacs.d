@@ -62,7 +62,7 @@
   ;;            \\++++++++\\
   ;;             \\+++++++/  __
   ;;              \\+++++/  /++\\
-  ;;               \\+++/  /++++\\    Rev. " cr-git-branch ":" cr-git-commithash " since creation,
+  ;;               \\+++/  /++++\\    Rev. " cr-git-branch ":" cr-git-commithash ",
   ;;                \\+/  /++++++\\   Welcome back.
   ;;                 '   --------
   "))
@@ -101,15 +101,20 @@
 #+BEGIN_SRC emacs-lisp
   (global-prettify-symbols-mode 1)
 #+END_SRC
+
+     Disable help pop-up.
+#+BEGIN_SRC emacs-lisp
+  (setq tooltip-use-echo-area t)
+#+END_SRC
 **** Theme
      Add a custom directory for themes and activate the seti theme.
 
      note: Theme is set in a hook since the package must load first.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'after-init-hook
-	    (lambda () (load-theme 'gruvbox)))
+            (lambda () (load-theme 'gruvbox)))
   (add-to-list 'custom-theme-load-path
-	       (concat user-emacs-directory "/themes/"))
+               (concat user-emacs-directory "/themes/"))
 #+END_SRC
 *** Behavior
 **** Remap yes/no menus to y/n
@@ -293,6 +298,14 @@
     (add-hook 'css-mode-hook  #'emmet-mode))
 
 #+END_SRC
+**** Neomutt
+     Mode to edit neomutt files.
+#+BEGIN_SRC emacs-lisp
+  (autoload 'muttrc-mode "muttrc-mode.el"
+      "Major mode to edit muttrc files" t)
+  (add-to-list 'auto-mode-alist '("\\.mtt\\'" . muttrc-mode))
+  (add-to-list 'auto-mode-alist '("muttrc\\'" . muttrc-mode))
+#+END_SRC
 *** Aesthetic
 **** Powerline
 #+BEGIN_SRC emacs-lisp
@@ -358,14 +371,14 @@
     :ensure t
     :config
     (require 'info+)
-    (require 'spaceline-config)
-    (spaceline-spacemacs-theme))
+    (require 'spaceline-config))
 
   (use-package spaceline-all-the-icons
     :ensure t
-    :disabled t
     :after (spaceline all-the-icons)
     :config
+    (setq spaceline-all-the-icons-separator-type 'none)
+    (spaceline-all-the-icons--setup-package-updates)
     (spaceline-all-the-icons-theme))
 #+END_SRC
 *** VIM emulation

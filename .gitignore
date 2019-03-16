@@ -2,4 +2,6 @@ elpa/
 conf/*.el
 auto-save-list/
 
+tramp
+recentf
 projectile-bookmarks.eld
