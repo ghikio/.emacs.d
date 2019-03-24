@@ -30,12 +30,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("1436d643b98844555d56c59c74004eb158dc85fc55d2e7205f8d9b8c860e177f" "7f89ec3c988c398b88f7304a75ed225eaac64efa8df3638c815acc563dfd3b55" "9b65cf71fd6b27a5362afeff062c6abd1c5d8a7c4d444c942f3da36bf0a151b1" default)))
- '(package-selected-packages
-   (quote
-    (imgbb all-the-icons spaceline-config fancy-battery info+ spaceline-all-the-icons spaceline emmet-mode git-gutter-fringe counsel-projectile yasnippet-snippets yasnippet web-mode ledger projectile 0blayout org-bullets editorconfig company markdown-mode cargo htmlize use-package))))
+  '(custom-safe-themes
+     (quote
+       ("a22f40b63f9bc0a69ebc8ba4fbc6b452a4e3f84b80590ba0a92b4ff599e53ad0" "1436d643b98844555d56c59c74004eb158dc85fc55d2e7205f8d9b8c860e177f" "7f89ec3c988c398b88f7304a75ed225eaac64efa8df3638c815acc563dfd3b55" "9b65cf71fd6b27a5362afeff062c6abd1c5d8a7c4d444c942f3da36bf0a151b1" default)))
+  '(package-selected-packages
+     (quote
+       (notmuch ledger-mode imgbb all-the-icons spaceline-config fancy-battery info+ spaceline-all-the-icons spaceline emmet-mode git-gutter-fringe counsel-projectile yasnippet-snippets yasnippet web-mode ledger projectile 0blayout org-bullets editorconfig company markdown-mode cargo htmlize use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
