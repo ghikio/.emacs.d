@@ -303,12 +303,24 @@
     (add-hook 'css-mode-hook  #'emmet-mode))
 
 #+END_SRC
-**** Ledger
-     Emacs interface to Ledger program.
+**** Beancount
+     Emacs interface to beancount program.
 #+BEGIN_SRC emacs-lisp
-  (use-package ledger-mode
+  (require 'beancount)
+  (add-to-list 'auto-mode-alist '("\\.dat\\'" . beancount-mode))
+#+END_SRC
+**** Paredit
+     Closes parenthesis automatically.
+#+BEGIN_SRC emacs-lisp
+  (use-package paredit
     :ensure t
-    :config (ledger-mode))
+    :config
+    (add-hook 'after-init-hook #'paredit-mode))
+#+END_SRC
+**** Clojure
+#+BEGIN_SRC emacs-lisp
+  (use-package cider
+    :ensure t)
 #+END_SRC
 *** Aesthetic
 **** Powerline
