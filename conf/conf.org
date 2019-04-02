@@ -2,39 +2,60 @@
 #+AUTHOR: Victor Fernandes
 #+EMAIL:  criw@pm.me
 
-* DEFINED ELEMENTS
-** Global variables
+* PERSONALIZATION
+** Helpers
 #+BEGIN_SRC emacs-lisp
-  (defvar v-doc-dir "~/Documentos/" "string pointing to the documents directory")
-  (defvar v-doc-dump-dir (concat v-doc-dir "brain-dump/") "string pointing to the dump directory")
-  (defvar cr-git-commithash
-    (substring
-     (shell-command-to-string
-      (concat "(cd " user-emacs-directory " && git rev-parse --short=8 HEAD)"))
-     0 -1) "last commit of the configuration repository")
-  (defvar cr-git-branch
-    (substring
-     (shell-command-to-string
-      (concat "(cd " user-emacs-directory " && git branch | grep \\* | cut -d' ' -f2)"))
-     0 -1) "current branch of the configuration repository")
+  (defun my-emacsd-git-branch ()
+    "Return .emacs.d current git branch name"
+    (substring (shell-command-to-string
+                (concat "(cd " user-emacs-directory
+                        " && git branch | grep \\* | cut -d' ' -f2)"))
+               0 -1))
 
+  (defun my-emacsd-git-commit-hash ()
+    "Return the .emacs.d current commit hash"
+    (substring (shell-command-to-string
+                (concat "(cd " user-emacs-directory
+                        " && git branch | grep \\* | cut -d' ' -f2)"))
+               0 -1))
+
+  (defun my-custom-documents-dir (&rest dirs)
+      "Return requested nested directories inside the documents directory"
+      (reduce 'concat (cons "~/Documentos/" dirs)))
+
+  (defun my-custom-notes-dir ()
+    "Return the notes directory"
+    (my-custom-documents-dir "notes/"))
+
+  (defun my-custom-notes-dump-dir ()
+    "Return the dump directory"
+    (my-custom-documents-dir "notes/" "dump/"))
+
+  (defun my-get-timestamp-filename (prefix)
+    "Builds a org filename with the prefix and current name"
+    (concat prefix "-" (format-time-string "%Y%m%d") ".org"))
+
+  (defun my-get-dump-filename ()
+    "Return a dump timestamped filename"
+    (my-get-timestamp-filename "dump"))
 #+END_SRC
-** Functions
+** Open dump file
 #+BEGIN_SRC emacs-lisp
-  (defun v-get-doc-filename (prefix)
-    "Create a temporary org filename"
-    (concat prefix "-"
-            (format-time-string "%Y%m%d") ".org"))
-
-  (defun v-open-doc-file ()
-    "Open a org file for the current day"
+  (defun my-open-dump-file ()
+    "Open a dump file"
     (interactive)
-    (setq file (v-get-doc-filename "dump"))
+    (when (not (file-directory-p (my-custom-notes-dump-dir)))
+      (make-directory (my-custom-notes-dump-dir)))
 
-    (when (not (file-directory-p v-doc-dump-dir))
-      (make-directory v-doc-dump-dir))
-
-    (find-file (concat v-doc-dump-dir file)))
+    (find-file (concat (my-custom-notes-dump-dir)
+                       (my-get-dump-filename))))
+#+END_SRC
+** Custom initial setup
+#+BEGIN_SRC emacs-lisp
+  (defun my-startup-display ()
+    "Open the TODO file & calendar"
+    (find-file "~/Documentos/todo/todo.org")
+    (org-agenda-list))
 #+END_SRC
 * CONFIGURATION
 ** Initial configuration
@@ -62,7 +83,7 @@
   ;;            \\++++++++\\
   ;;             \\+++++++/  __
   ;;              \\+++++/  /++\\
-  ;;               \\+++/  /++++\\    Rev. " cr-git-branch ":" cr-git-commithash ",
+  ;;               \\+++/  /++++\\    Rev. " (my-emacsd-git-branch) ":" (my-emacsd-commit-hash) ",
   ;;                \\+/  /++++++\\   Welcome back.
   ;;                 '   --------
   "))
@@ -147,6 +168,16 @@
      Set gpg password to be asked on the minibuffer.
 #+BEGIN_SRC emacs-lisp
   (setq epa-pinentry-mode 'loopback)
+#+END_SRC
+**** Startup menu
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'after-init-hook #'my-startup-display)
+#+END_SRC
+**** ORG
+#+BEGIN_SRC emacs-lisp
+  (setq org-agenda-include-diary t)
+  (setq org-agenda-files (list "~/Documentos/todo"))
+  (setq org-agenda-diary-file "~/Documentos/diary.org")
 #+END_SRC
 ** Packages configuration
 *** General
@@ -315,12 +346,16 @@
   (use-package paredit
     :ensure t
     :config
-    (add-hook 'after-init-hook #'paredit-mode))
+    (add-hook 'text-mode-hook #'enable-paredit-mode)
+    (add-hook 'clojure-mode-hook #'enable-paredit-mode)
+    (add-hook 'c-mode-common-hook #'enable-paredit-mode)
+    (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode))
 #+END_SRC
 **** Clojure
 #+BEGIN_SRC emacs-lisp
   (use-package cider
     :ensure t)
+  (add-hook 'clojure-mode-hook #'cider-mode)
 #+END_SRC
 *** Aesthetic
 **** Powerline
@@ -539,7 +574,7 @@
 #+END_SRC
 **** Open dump note
 #+BEGIN_SRC emacs-lisp
-  (evil-leader/set-key "d" #'v-open-doc-file)
+  (evil-leader/set-key "d" #'my-open-dump-file)
 #+END_SRC
 *** Magit
 #+BEGIN_SRC emacs-lisp
