@@ -83,7 +83,7 @@
   ;;            \\++++++++\\
   ;;             \\+++++++/  __
   ;;              \\+++++/  /++\\
-  ;;               \\+++/  /++++\\    Rev. " (my-emacsd-git-branch) ":" (my-emacsd-commit-hash) ",
+  ;;               \\+++/  /++++\\    Rev. " (my-emacsd-git-branch) ":" (my-emacsd-git-commit-hash) ",
   ;;                \\+/  /++++++\\   Welcome back.
   ;;                 '   --------
   "))
