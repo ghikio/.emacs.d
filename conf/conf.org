@@ -1,6 +1,6 @@
 #+TITLE:  V'emacs configuration
 #+AUTHOR: Victor Fernandes
-#+EMAIL:  criw@pm.me
+#+EMAIL:  me@ghikio.dev
 
 * PERSONALIZATION
 ** Helpers
@@ -20,8 +20,8 @@
                0 -1))
 
   (defun my-custom-documents-dir (&rest dirs)
-      "Return requested nested directories inside the documents directory"
-      (reduce 'concat (cons "~/Documentos/" dirs)))
+    "Return requested nested directories inside the documents directory"
+    (reduce 'concat (cons "~/Documents/" dirs)))
 
   (defun my-custom-notes-dir ()
     "Return the notes directory"
@@ -54,8 +54,33 @@
 #+BEGIN_SRC emacs-lisp
   (defun my-startup-display ()
     "Open the TODO file & calendar"
-    (find-file "~/Documentos/todo/todo.org")
+    (find-file "~/Documents/prs/todo/todo.org")
     (org-agenda-list))
+#+END_SRC
+** Hydra Menus
+*** Ggtags
+    Organize keybinds by groups.
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-c-tags-menu (:color pink
+                               :hint  nil)
+    "
+  ^Files^            ^Find^
+  ---------------------------------------
+  _c_: create        _d_: definition
+  _u_: update        _r_: reference
+  _s_: switch .c/.h  _o_: other symbols
+  ^ ^                _f_: file
+  ^ ^                ^ ^
+  "
+    ("c" ggtags-create-tags)
+    ("u" ggtags-update-tags)
+    ("s" ff-find-other-file)
+    ("d" ggtags-find-definition)
+    ("r" ggtags-find-reference)
+    ("o" ggtags-find-other-symbol)
+    ("f" ggtags-find-file)
+    ("C" nil "cancel")
+    ("Q" quit-window "quit" :color blue))
 #+END_SRC
 * CONFIGURATION
 ** Initial configuration
@@ -133,7 +158,7 @@
      note: Theme is set in a hook since the package must load first.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'after-init-hook
-            (lambda () (load-theme 'gruvbox)))
+            (lambda () (load-theme 'sanityinc-tomorrow-night)))
   (add-to-list 'custom-theme-load-path
                (concat user-emacs-directory "/themes/"))
 #+END_SRC
@@ -176,8 +201,13 @@
 **** ORG
 #+BEGIN_SRC emacs-lisp
   (setq org-agenda-include-diary t)
-  (setq org-agenda-files (list "~/Documentos/todo"))
-  (setq org-agenda-diary-file "~/Documentos/diary.org")
+  (setq org-agenda-files (list "~/Documents/prs/todo"))
+  (setq org-agenda-diary-file  "~/Documents/diary.org")
+  (setq org-log-repeat "time")
+#+END_SRC
+**** TEX
+#+BEGIN_SRC emacs-lisp
+  (setq TeX-engine "xetec")
 #+END_SRC
 ** Packages configuration
 *** General
@@ -220,14 +250,7 @@
       ", oli" "insert")
 
     (which-key-add-major-mode-key-based-replacements 'c-mode
-      ", t"   "tags"
-      ", tc"  "create tags file"
-      ", tu"  "update tags file"
-      ", ts"  "switch header/impl"
-      ", tf"  "find"
-      ", tfd" "definition"
-      ", tff" "file"
-      ", tfr" "reference"))
+      ", t"   "tags"))
 #+END_SRC
 **** Tomatinho
      Pomodoro timer.
@@ -357,6 +380,13 @@
     :ensure t)
   (add-hook 'clojure-mode-hook #'cider-mode)
 #+END_SRC
+**** Hydra
+     Organize keybinds by groups.
+#+BEGIN_SRC emacs-lisp
+  (use-package hydra
+    :ensure t
+    :hook (after-init . hydra-posframe-enable))
+#+END_SRC
 *** Aesthetic
 **** Powerline
 #+BEGIN_SRC emacs-lisp
@@ -399,6 +429,8 @@
 #+BEGIN_SRC emacs-lisp
   (use-package gruvbox-theme
     :ensure t)
+  (use-package color-theme-sanityinc-tomorrow
+    :ensure t)
 #+END_SRC
 **** Git Gutter Fringe
      Allows highlighting uncommitted changes.
@@ -431,6 +463,19 @@
     (setq spaceline-all-the-icons-separator-type 'none)
     (spaceline-all-the-icons--setup-package-updates)
     (spaceline-all-the-icons-theme))
+#+END_SRC
+**** Posframe
+#+BEGIN_SRC emacs-lisp
+  (use-package ivy-posframe
+    :ensure t
+    :after (ivy)
+    :disabled t
+    :config
+    (setq ivy-display-function #'ivy-posframe-display-at-window-center))
+
+  (use-package hydra-posframe
+    :load-path "lib/"
+    :after (hydra))
 #+END_SRC
 *** VIM emulation
 **** Evil-leader
@@ -529,10 +574,6 @@
 #+BEGIN_SRC emacs-lisp
 (evil-leader/set-key "z" #'text-scale-adjust)
 #+END_SRC
-**** Change between header and implementation
-#+BEGIN_SRC emacs-lisp
-  (evil-leader/set-key-for-mode 'c-mode "ts" #'ff-find-other-file)
-#+END_SRC
 **** Emacs directory related
      Reload the init file.
 #+BEGIN_SRC emacs-lisp
@@ -576,17 +617,13 @@
 #+BEGIN_SRC emacs-lisp
   (evil-leader/set-key "d" #'my-open-dump-file)
 #+END_SRC
+**** Hydra Menus
+#+BEGIN_SRC emacs-lisp
+  (evil-leader/set-key-for-mode 'c-mode "t" #'hydra-c-tags-menu/body)
+#+END_SRC
 *** Magit
 #+BEGIN_SRC emacs-lisp
 (evil-leader/set-key "gs" #'magit-status)
-#+END_SRC
-*** Ggtags
-#+BEGIN_SRC emacs-lisp
-  (evil-leader/set-key-for-mode 'c-mode "tfr" #'ggtags-find-reference)
-  (evil-leader/set-key-for-mode 'c-mode "tff" #'ggtags-find-file)
-  (evil-leader/set-key-for-mode 'c-mode "tfd" #'ggtags-find-definition)
-  (evil-leader/set-key-for-mode 'c-mode "tc"  #'ggtags-create-tags)
-  (evil-leader/set-key-for-mode 'c-mode "tu"  #'ggtags-update-tags)
 #+END_SRC
 *** Ivy
 #+BEGIN_SRC emacs-lisp
