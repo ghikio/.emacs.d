@@ -1,9 +1,9 @@
 elpa/
-conf/*.el
 transient/
 auto-save-list/
 
 tramp
+main.el
 recentf
 session.*
 projectile-bookmarks.eld
