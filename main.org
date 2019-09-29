@@ -1,0 +1,631 @@
+#+TITLE:  V'emacs configuration
+#+AUTHOR: Vitor Fernandes
+#+EMAIL:  contact (at) ghikio (dot) dev
+
+* Glossary
+
+  |------------+-------------------------------------------------------------------------------------------+------|
+  | Term       | Brief Description                                                                         | Link |
+  |------------+-------------------------------------------------------------------------------------------+------|
+  | Minibuffer | The minibuffer is where emacs reads user input for commands                               | [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Minibuffer.html][here]] |
+  | The Fringe | The fringe appear at the sides of windows and can display information, usually as symbols | [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Fringes.html][here]] |
+  | Mode Line  | Display multiple information about the current buffer, each window has one                | [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mode-Line.html][here]] |
+  |------------+-------------------------------------------------------------------------------------------+------|
+
+* List of Installed Packages
+
+  |-------------------+---------------------------------------------------------------+---------------------|
+  | Package           | Brief Description                                             | Manually Installed? |
+  |-------------------+---------------------------------------------------------------+---------------------|
+  | kaolin-themes     | Themes for emacs                                              | N                   |
+  | doom-modeline     | Modeline of the doom emacs configuration                      | N                   |
+  | git-gutter-fringe | A fringe that displays git file status                        | N                   |
+  | beacon            | A light that follows your cursor around so you don't lose it! | N                   |
+  | all-the-icons     | Icons!                                                        | N                   |
+  | hydra             | Organize keybinds by groups.                                  | N                   |
+  | general           | More convenient key definitions in emacs                      | N                   |
+  | which-key         | Emacs package that displays available keybindings in popup    | N                   |
+  | avy               | Jump to things in Emacs tree-style                            | N                   |
+  |-------------------+---------------------------------------------------------------+---------------------|
+
+* Personalization
+** Helpers
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-emacsd-git-branch ()
+    "Return .emacs.d current git branch name"
+    (substring (shell-command-to-string
+		(concat "(cd " user-emacs-directory
+			" && git branch | grep \\* | cut -d' ' -f2)"))
+	       0 -1))
+
+  (defun my-emacsd-git-commit-hash ()
+    "Return the .emacs.d current commit hash"
+    (substring (shell-command-to-string
+		(concat "(cd " user-emacs-directory
+			" && git rev-parse --short=8 HEAD)"))
+	       0 -1))
+
+  (defun my-custom-documents-dir (&rest dirs)
+    "Return requested nested directories inside the documents directory"
+    (reduce 'concat (cons "~/Documents/" dirs)))
+
+  (defun my-custom-notes-dir ()
+    "Return the notes directory"
+    (my-custom-documents-dir "notes/"))
+
+  (defun my-custom-notes-dump-dir ()
+    "Return the dump directory"
+    (my-custom-documents-dir "notes/" "dump/"))
+
+  (defun my-get-timestamp-filename (prefix)
+    "Builds a org filename with the prefix and current name"
+    (concat prefix "-" (format-time-string "%Y%m%d") ".org"))
+
+  (defun my-get-dump-filename ()
+    "Return a dump timestamped filename"
+    (my-get-timestamp-filename "dump"))
+#+END_SRC
+
+** Open dump file
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-open-dump-file ()
+    "Open a dump file"
+    (interactive)
+    (when (not (file-directory-p (my-custom-notes-dump-dir)))
+      (make-directory (my-custom-notes-dump-dir)))
+
+    (find-file (concat (my-custom-notes-dump-dir)
+                       (my-get-dump-filename))))
+#+END_SRC
+
+* Environment
+** Base
+
+   By default emacs like to show you how much menus it has and how cool it's
+   scrollbar is, let's disable that.
+
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+#+END_SRC
+
+   Also, let's disable the fringe so we can use a git fringe, which will show
+   information about the current file (git) status.
+
+#+BEGIN_SRC emacs-lisp
+  ;; disable fringe
+  (fringe-mode 0)
+
+  (use-package git-gutter-fringe
+    :ensure t
+
+    :custom
+    (right-fringe-width 6 "set the fringe size")
+    (git-gutter-fr:side #'right-fringe "positione the fringe in the right side")
+
+    :config
+    (global-git-gutter-mode t))
+#+END_SRC
+
+   Keep disabling things, the initial "tutorial" message is unnecessary.
+   Since we are at it, we can define our own initial screen.
+
+#+BEGIN_SRC emacs-lisp
+  ;; disable startup message
+  (setq inhibit-startup-message t)
+
+  ;; write this down in the scratch buffer at startup
+  (setq initial-scratch-message
+        (concat
+  ";;  _________               ________
+  ;;  \\++++++++\\             /+++++++/
+  ;;   \\++++++++\\           /+++++++/
+  ;;    \\++++++++\\         /+++++++/
+  ;;     \\++++++++\\       /+++++++/
+  ;;      \\++++++++\\     /+++++++/
+  ;;       \\++++++++\\    \\++++++/
+  ;;        \\++++++++\\    \\++++/
+  ;;         \\++++++++\\    \\++/
+  ;;          \\++++++++\\    \\/
+  ;;           \\++++++++\\
+  ;;            \\++++++++\\
+  ;;             \\+++++++/  __
+  ;;              \\+++++/  /++\\
+  ;;               \\+++/  /++++\\    Rev. " (my-emacsd-git-branch) ":" (my-emacsd-git-commit-hash) ",
+  ;;                \\+/  /++++++\\   Welcome back.
+  ;;                 '   --------
+  "))
+
+  ;; write this down in the mini buffer at startup
+  (defun display-startup-echo-area-message ()
+    (message "Nani the fuck?"))
+
+  ;; Remove linum-relative-mode from the scratch buffer
+  ;; cause I don't want it there. :)
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (linum-relative-mode 0)))
+#+END_SRC
+
+   For the backups policy, let's configure it to store them at an specific
+   directory and store different versions of the changes.
+
+   As documented in emacswiki ([[https://www.emacswiki.org/emacs/AutoSave#toc7][here]]), only the focused buffer is saved by
+   default, so with 'save-all' we are able to save all of them even if we
+   switched from one to another before it was saved.
+
+#+BEGIN_SRC emacs-lisp
+  (setq
+   ; save every 20 characters
+   auto-save-interval 20
+   ; save after 15 seconds if stop typing
+   auto-save-timeout 15
+   ; copy files instead of renaming them
+   backup-by-copying t
+   ; newest backups to keep
+   kept-new-versions 10
+   ; oldest backups to keep, anything between the newest and oldest will
+   ; be deletec
+   kept-old-versions 10
+   ; don't ask before deleting backup files
+   delete-old-versions t
+   ; use version numbers for backups
+   version-control t
+   ; backup files even in a project with version-control
+   vc-make-backup-files t
+   ; where to store backups
+   backup-directory-alist `((".*" . "~/tmp/ebackup/")))
+
+  ; save the file directly instead of saving it in an #auto-save# file
+  (add-hook 'after-init-hook #'auto-save-visited-mode)
+
+  (defun save-all ()
+    "Save all the buffers silently."
+    (interactive)
+    (save-some-buffers t))
+
+  ; save them each time you change between buffers
+  (add-hook 'focus-out-hook #'save-all)
+#+END_SRC
+
+   Let's add Ivy, which is a gigantic package that does completion,
+   lemme copy-paste how it's documentation define it.
+
+   Ivy is an interactive interface for completion in Emacs. Emacs uses
+   completion mechanism in a variety of contexts: code, menus, commands,
+   variables, functions, etc. Completion entails listing, sorting,
+   filtering, previewing, and applying actions on selected items.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ivy
+    :ensure t
+    :init (setq ivy-use-virtual-buffers t)
+	  (setq enable-recursive-minibuffers t)
+    :config (ivy-mode 1))
+#+END_SRC
+
+   Navigation is important, Avy let's you jump to any part of the current
+   buffer by typing a of couple characters of where you want to go.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package avy
+    :ensure t
+    :custom
+    (avy-timeout-seconds 0.3))
+#+END_SRC
+
+   Almost done, configure vim-like packages to feel home.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package evil
+    :ensure t
+    :config
+    (evil-mode t))
+
+  ;; linum-relative allows to display line numbers relative to the
+  ;; current line. This makes trivial to jump n lines up/down.
+  (use-package linum-relative
+    :ensure t
+    :custom
+    (linum-relative-backend 'display-line-numbers-mode)
+    ;; If linum-relative-current-symbol is defined as a empty
+    ;; string, it will show the current real line number.
+    (linum-relative-current-symbol "")
+    :config
+    (add-hook 'prog-mode-hook (lambda () (linum-relative-mode 1))))
+#+END_SRC
+
+   Also, let's add a sidebar folder structure since they are useful `sometimes`.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package neotree
+    :ensure t
+    :after (projectile)
+    :config
+    (setq neo-smart-open t)
+    (setq projectile-switch-project-action 'neotree-projectile-action))
+#+END_SRC
+
+   And finally some more tweeks.
+
+#+BEGIN_SRC emacs-lisp
+  ;; Each time a yes or no input is required, instead of writing the
+  ;; whole word, y/n is enough
+  (defalias #'yes-or-no-p #'y-or-n-p)
+
+  (setq
+   ; Makes scrolling look more smooth
+   scroll-conservatively 100
+
+   ; Disable the bell
+   ring-bell-function #'ignore
+
+   ; Moving to the left on the leftest window goes to the rightest one,
+   ; same for all the other directions
+   windmove-wrap-around t)
+#+END_SRC
+
+** Font and theme
+
+   Use the specified font in case the system finds it, otherwise falls to
+   whatever the default font is. At the same time set prettify-symbols-mode
+   which changes some symbols' words (e.g., lambda) to the actual symbol.
+
+#+BEGIN_SRC emacs-lisp
+  (when (find-font (font-spec :name "Hack"))
+    (set-frame-font "Hack-12" nil t))
+
+  (global-prettify-symbols-mode 1)
+#+END_SRC
+
+   Add a custom themes' directory to the themes load path, that way themes
+   in that directory will be automatically detected by emacs. Furthemore some
+   cute themes are installed and one is set as default.
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'custom-theme-load-path
+              (concat user-emacs-directory "/themes/"))
+
+  (use-package kaolin-themes
+    :ensure t
+    :config
+    (load-theme 'kaolin-aurora t))
+
+  (defun switch-themes (b)
+    "Switch between light and dark theme.
+  @arg b - if true, use black baground, otherwise white."
+    (interactive)
+    (let ((themes '(white kaolin-breeze
+                          black kaolin-aurora)))
+      (if b
+          (progn
+            (disable-theme (plist-get themes 'white))
+            (load-theme (plist-get themes 'black)))
+        (progn
+          (disable-theme (plist-get themes 'black))
+          (load-theme (plist-get themes 'white))))))
+#+END_SRC
+
+** Aesthetic tweeks
+
+   Use the doom modeline as default modeline.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package doom-modeline
+    :ensure t
+    :hook (after-init . doom-modeline-mode)
+
+    :custom
+    (doom-modeline-height 4))
+
+  ;; Enable a little clock in the modeline
+  (display-time-mode)
+
+  ;; setting this to nil, it disables the cpu load average displayed
+  ;; after the time
+  (setq display-time-default-load-average nil)
+   #+END_SRC
+
+   And lil packages that sometimes are really useful.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package beacon
+    :ensure t
+    :config (beacon-mode 1))
+
+  (use-package all-the-icons
+    :ensure t)
+
+  (use-package hydra
+    :ensure t)
+
+  ;; Make org bullets (*) nice round and cuuute
+  (use-package org-bullets
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook (lambda ()
+                                (org-bullets-mode t))))
+#+END_SRC
+
+** Coding utilities and tools
+
+   First, company is a must. It's a in-buffer completion framework, which means
+   it will show completions for our code.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t
+    :config (add-hook 'after-init-hook #'global-company-mode))
+
+  (use-package company-c-headers
+    :ensure t
+    :config
+    (add-to-list 'company-backends 'company-c-headers))
+#+END_SRC
+
+   Next must, flycheck, enables in real-time code cheking for a lot of languages.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :config
+    (add-hook 'after-init-hook #'global-flycheck-mode))
+#+END_SRC
+
+   Projectile gives emacs the concept of a "Project" and allows us to
+   interact with one easily.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :ensure t
+    :config
+    ;; projectile-mode is not enable here since we enable
+    ;; in the counsel-projectile package configuration.
+    (when (file-exists-p "~/src/")
+      (setq projectile-project-search-path '("~/src/"))))
+
+  (use-package counsel-projectile
+    :ensure t
+    :requires (ivy projectile)
+    :config
+    (counsel-projectile-mode))
+#+END_SRC
+
+   Snippets!
+
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config
+    (yas-global-mode 1))
+
+  ;; Basic general snippets
+  (use-package yasnippet-snippets
+    :ensure t
+    :requires yasnippet
+    :config
+    (yas-reload-all))
+#+END_SRC
+
+** Programming
+*** C
+
+    Ggtags is a tag tool for C code, which reads the whole project source
+    code and can be used to jump to functions definition, search uses of
+    a variable, ...
+
+#+BEGIN_SRC emacs-lisp
+  (setq c-default-style "bsd"
+        c-basic-offset 4)
+
+  (use-package ggtags
+    :ensure t
+    :config (add-hook 'c-mode-common-hook
+                      (lambda ()
+                        (when (derived-mode-p 'c-mode 'c++-mode 'asm-mode)
+                          (ggtags-mode 1)))))
+#+END_SRC
+
+
+    Next, semantic is a suite of Emacs libraries and utilities for parsing
+    source code, I'm not sure if it only applies for C code, but that's what
+    I use it for!
+
+#+BEGIN_SRC emacs-lisp
+  (use-package semantic
+    :ensure t
+    :config
+    (global-semantic-idle-scheduler-mode 1)
+    (global-semanticdb-minor-mode 1))
+#+END_SRC
+
+*** Clojure
+
+    Cider is the Clojure environment for emacs. It provides a bunch of
+    utilities, such as a REPL.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package cider
+    :ensure t
+    :config
+    (add-hook 'clojure-mode-hook #'cider-mode))
+#+END_SRC
+
+    Paredit is a *powerful* parenthesis matching package. It helps keeping
+    the parenthesis balanced, adding expressions in parenthesis, nesting
+    them, un-nesting them, ...
+
+#+BEGIN_SRC emacs-lisp
+  (use-package paredit
+    :ensure t
+    :config
+    (add-hook 'cider-repl-mode      #'enable-paredit-mode)
+    (add-hook 'clojure-mode-hook    #'enable-paredit-mode)
+    (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode))
+#+END_SRC
+
+* Key Bindings
+** Base
+
+#+BEGIN_SRC emacs-lisp
+  ;  Emacs general bindings
+
+  ;; after org since org uses M-h and my keybind
+  ;; was being replaced.
+  (with-eval-after-load "org"
+    (global-set-key (kbd "M-h") #'windmove-left)
+    (global-set-key (kbd "M-j") #'windmove-down)
+    (global-set-key (kbd "M-k") #'windmove-up)
+    (global-set-key (kbd "M-l") #'windmove-right))
+
+  ; Evil key bindings
+
+  (evil-define-key '(normal motion) 'global (kbd "g s") #'avy-goto-char-timer)
+
+  ; Vim leader-like bindings
+
+  (use-package general
+    :ensure t
+    :config
+    (general-create-definer my-main-leader-def
+      :prefix ";")
+    (general-create-definer my-dev-leader-def
+      :prefix ","))
+
+  (my-main-leader-def
+    :keymaps 'normal
+    "q"     #'kill-this-buffer
+    "z"     #'text-scale-adjust
+    "ps"    #'projectile-switch-project
+    "ts"    #'shell
+    "tS"     '(lambda ()
+		(interactive)
+		(call-process "alacritty" nil 0))
+    "ee"     '(lambda ()
+		(interactive)
+		(if (find-buffer-visiting "main.org")
+		    (switch-to-buffer "main.org")
+		  (find-file (concat user-emacs-directory
+				     "main.org"))))
+    "er"     '(lambda ()
+		(interactive)
+		(load-file (concat user-emacs-directory "init.el")))
+    "ud"    #'my-open-dump-file
+    "utl"    '(lambda ()
+		(interactive)
+		(switch-themes nil))
+    "utb"    '(lambda ()
+		(interactive)
+		(switch-themes t)))
+#+END_SRC
+
+** C
+
+#+BEGIN_SRC emacs-lisp
+  (my-dev-leader-def
+    :states 'normal
+    :keymaps 'c-mode-base-map
+    "t"     #'hydra-c-tags-menu/body)
+#+END_SRC
+
+** Clojure
+
+#+BEGIN_SRC emacs-lisp
+  (my-dev-leader-def
+    :states 'normal
+    :keymaps 'clojure-mode-map
+    "d"     #'cider-doc
+    "lb"    #'cider-load-buffer
+    "lB"    #'cider-load-buffer-and-switch-to-repl-buffer
+    "ln"    (lambda ()
+	      (interactive)
+	      (cider-switch-to-repl-buffer t))
+    "es"    #'cider-eval-sexp-at-point
+    "ef"    #'cider-eval-defun-at-point
+    "Di"    #'cider-debug-defun-at-point
+    "Dt"    #'cider-toggle-trace-var)
+#+END_SRC
+
+** Renaming Keybindings
+
+    Autocompletion menu for commands, also allows to rename existing commands.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :ensure t
+    :init (which-key-mode t)
+    :config
+    (which-key-add-key-based-replacements
+      "; e"   "emacs"
+      "; ee"  "edit"
+      "; er"  "reload"
+      "; t"   "tools"
+      "; ts"  "emacs shell"
+      "; tS"  "external shell"
+      "; p"   "project"
+      "; ps"  "switch"
+      "; g"   "git"
+      "; b"   "buffer"
+      "; bs"  "switch"
+      "; u"   "user"
+      "; ud"  "dump file"
+      "; ut"  "themes"
+      "; utl" "light"
+      "; utd" "dark"
+      "; q"   "kill buffer"
+      "; z"   "zoom")
+
+    (which-key-add-major-mode-key-based-replacements 'clojure-mode
+      ", d"   "doc"
+      ", l"   "load"
+      ", lb"  "load buf"
+      ", lB"  "load buf -> repl"
+      ", lj"  "load ns -> repl"
+      ", e"   "eval"
+      ", es"  "eval sexp"
+      ", ef"  "eval defun"
+      ", D"   "debug"
+      ", Di"  "interactive"
+      ", Dt"  "trace var"))
+#+END_SRC
+
+* Fixes
+
+  Set gpg password to be asked on the minibuffer.
+
+#+BEGIN_SRC emacs-lisp
+  (setq epa-pinentry-mode 'loopback)
+#+END_SRC
+
+* Others
+** Hydra Menus
+*** Ggtags
+
+    Organize keybinds by groups.
+    
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-c-tags-menu (:color pink
+                               :hint  nil)
+    "
+  ^Files^            ^Find^
+  ---------------------------------------
+  _c_: create        _d_: definition
+  _u_: update        _r_: reference
+  _s_: switch .c/.h  _o_: other symbols
+  ^ ^                _f_: file
+  ^ ^                ^ ^
+  "
+    ("c" ggtags-create-tags)
+    ("u" ggtags-update-tags)
+    ("s" ff-find-other-file)
+    ("d" ggtags-find-definition)
+    ("r" ggtags-find-reference)
+    ("o" ggtags-find-other-symbol)
+    ("f" ggtags-find-file)
+    ("C" nil "cancel")
+    ("Q" quit-window "quit" :color blue))
+#+END_SRC
+
