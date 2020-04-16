@@ -276,7 +276,7 @@
 
 #+BEGIN_SRC emacs-lisp
   (when (find-font (font-spec :name "Hack"))
-    (set-frame-font "Hack-12" nil t))
+    (set-frame-font "Fira Code" nil t))
 
   (global-prettify-symbols-mode 1)
 #+END_SRC
@@ -337,9 +337,6 @@
     :config (beacon-mode 1))
 
   (use-package all-the-icons
-    :ensure t)
-
-  (use-package hydra
     :ensure t)
 
   ;; Make org bullets (*) nice round and cuuute
@@ -413,20 +410,14 @@
 ** Programming
 *** C
 
-    Ggtags is a tag tool for C code, which reads the whole project source
-    code and can be used to jump to functions definition, search uses of
-    a variable, ...
+    A client/server indexer for c/c++/objc[++] with integration for Emacs based on clang. 
 
 #+BEGIN_SRC emacs-lisp
   (setq c-default-style "bsd"
-        c-basic-offset 4)
+	c-basic-offset 4)
 
-  (use-package ggtags
-    :ensure t
-    :config (add-hook 'c-mode-common-hook
-                      (lambda ()
-                        (when (derived-mode-p 'c-mode 'c++-mode 'asm-mode)
-                          (ggtags-mode 1)))))
+  (use-package rtags
+    :ensure t)
 #+END_SRC
 
 
@@ -493,6 +484,32 @@
     (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode))
 #+END_SRC
 
+*** Rust
+
+    Rustic is a complete rust package that provides flycheck support,
+    a cargo wrapper, code formatting, ...
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rustic
+    :ensure t
+    :config
+    (add-hook 'flycheck-mode-hook #'rustic-flycheck-setup))
+
+  (use-package lsp-mode
+    :ensure t)
+#+END_SRC
+
+** Others
+
+   A double-entry bookkeeping computer language that lets you define financial
+   transaction records in a text file, read them in memory, generate a variety of
+   reports from them, and provides a web interface.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package beancount
+    :load-path "./lib/")
+#+END_SRC
+
 * Key Bindings
 ** Base
 
@@ -549,13 +566,25 @@
 		(switch-themes t)))
 #+END_SRC
 
+** Beancount
+
+#+BEGIN_SRC emacs-lisp
+  (my-dev-leader-def
+    :states  'normal
+    :keymaps 'beancount-mode-map
+    "aa"    #'beancount-insert-account
+    "an"    #'beancount-align-to-previous-number
+    "c"     #'beancount-check)
+#+END_SRC
+
 ** C
 
 #+BEGIN_SRC emacs-lisp
   (my-dev-leader-def
     :states 'normal
     :keymaps 'c-mode-base-map
-    "t"     #'hydra-c-tags-menu/body)
+    "tf"    #'rtags-find-file
+    "td"    #'rtags-find-symbol-at-point)
 #+END_SRC
 
 ** Clojure
@@ -574,6 +603,19 @@
     "ef"    #'cider-eval-defun-at-point
     "Di"    #'cider-debug-defun-at-point
     "Dt"    #'cider-toggle-trace-var)
+#+END_SRC
+
+** Rust
+
+#+BEGIN_SRC emacs-lisp
+  (my-dev-leader-def
+    :states  'normal
+    :keymaps 'rustic-mode-map
+    "r"     #'rustic-format-buffer
+    "ct"    #'rustic-cargo-test
+    "cb"    #'rustic-cargo-build
+    "cd"    #'rustic-cargo-build-doc
+    "fd"    #'lsp-describe-thing-at-point)
 #+END_SRC
 
 ** Renaming Keybindings
@@ -625,34 +667,5 @@
 
 #+BEGIN_SRC emacs-lisp
   (setq epa-pinentry-mode 'loopback)
-#+END_SRC
-
-* Others
-** Hydra Menus
-*** Ggtags
-
-    Organize keybinds by groups.
-    
-#+BEGIN_SRC emacs-lisp
-  (defhydra hydra-c-tags-menu (:color pink
-                               :hint  nil)
-    "
-  ^Files^            ^Find^
-  ---------------------------------------
-  _c_: create        _d_: definition
-  _u_: update        _r_: reference
-  _s_: switch .c/.h  _o_: other symbols
-  ^ ^                _f_: file
-  ^ ^                ^ ^
-  "
-    ("c" ggtags-create-tags)
-    ("u" ggtags-update-tags)
-    ("s" ff-find-other-file)
-    ("d" ggtags-find-definition)
-    ("r" ggtags-find-reference)
-    ("o" ggtags-find-other-symbol)
-    ("f" ggtags-find-file)
-    ("C" nil "cancel")
-    ("Q" quit-window "quit" :color blue))
 #+END_SRC
 
